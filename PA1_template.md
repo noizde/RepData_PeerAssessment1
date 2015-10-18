@@ -1,14 +1,9 @@
----
-title: "Reproducible Research: Peer Assessment 1"
-output: 
-  html_document:
-    keep_md: true
----
+# Reproducible Research: Peer Assessment 1
 
 
 ## Loading and preprocessing the data
-```{r loadData}
 
+```r
 ## If activity.csv hasn't been extracted, do so.
 
 if (!("activity.csv" %in% list.files())) {
@@ -28,13 +23,13 @@ withoutNA <- rawData[complete.cases(rawData),];
 byDate <- split(withoutNA, withoutNA$date)
 dateVector <- unlist(lapply(byDate, function(d){sum(d[,1])}));
 byDateFrame <- data.frame(sums = dateVector, dates = names(dateVector), row.names = NULL);
-
 ```
 
 
 ## What is mean total number of steps taken per day?
 
-```{r byDate}
+
+```r
 meanByDate <- mean(byDateFrame[,1]);
 medianByDate<- median(byDateFrame[,1]);
 ggplot(data = byDateFrame, aes(byDateFrame[,1])) + 
@@ -43,11 +38,14 @@ ggplot(data = byDateFrame, aes(byDateFrame[,1])) +
   ylab("Days Counted")
 ```
 
-The mean number of steps per day is **`r meanByDate`**, while the median is **`r medianByDate`**.
+![](PA1_template_files/figure-html/byDate-1.png) 
+
+The mean number of steps per day is **9354.2295082**, while the median is **10395**.
 
 ## What is the average daily activity pattern?
 
-``` {r byInterval}
+
+```r
 library('plyr');
 
 # Group data by interval and take the mean.
@@ -56,18 +54,26 @@ byInterval <- ddply(withoutNA,~interval, function(i){mean(i$steps)});
 names(byInterval) <- c("interval", "steps");
 
 ggplot(data = byInterval, aes(interval, steps)) + geom_line();
-
 ```
+
+![](PA1_template_files/figure-html/byInterval-1.png) 
 
 The interval with the most activity is given by the following: 
 
-``` {r maxInterval}
+
+```r
 byInterval[which(byInterval[,2] == max(byInterval[,2])),];
+```
+
+```
+##     interval    steps
+## 104      835 206.1698
 ```
 
 
 ## Imputing missing values
-``` {r impute}
+
+```r
 numIncompleteRows <- sum(!complete.cases(rawData));
 
 ## Take the number of steps for rows with NA values from the byInterval data frame.
@@ -92,15 +98,14 @@ byDateFrameImputed <- data.frame(sums = dateVectorImputed, dates = names(dateVec
 
 meanByDateImputed<- mean(byDateFrameImputed[,"sums"]);
 medianByDateImputed <- median(byDateFrameImputed[,"sums"]);
-
 ```
 
-There are **`r numIncompleteRows`** rows with NA values. The mean number of steps is **`r meanByDateImputed`** and the median is **`r medianByDateImputed`** steps, versus **`r meanByDate`** and **`r medianByDate`** without imputed values, respectively.
+There are **2304** rows with NA values. The mean number of steps is **1.0766189\times 10^{4}** and the median is **1.0766189\times 10^{4}** steps, versus **9354.2295082** and **10395** without imputed values, respectively.
 
 ## Are there differences in activity patterns between weekdays and weekends?
 
-``` {r weekdayVsWeekend}
 
+```r
 ## Classify each day as coming from a weekend or a weekday.
 
 dateFactor <- as.factor(sapply(imputedData$date, function(d){
@@ -117,5 +122,7 @@ names(byIntervalWeekday) <- c("interval", "weekday", "steps");
 
 ggplot(data = byIntervalWeekday, aes(interval, steps)) + geom_line() + facet_grid(weekday ~ .);
 ```
+
+![](PA1_template_files/figure-html/weekdayVsWeekend-1.png) 
 
 On average, weekdays have the highest peak in number of steps in an interval, then steadily going down to peak at 100 for the rest of the day; in contrast, weekends peak (on average) at around 150 steps, going slightly lower than that as the day progresses.
